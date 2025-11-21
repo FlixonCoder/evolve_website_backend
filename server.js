@@ -74,8 +74,9 @@ app.use("/static", express.static(BASE_DIR));
 
 // Serve index.html
 app.get("/", (req, res) => {
-  res.sendFile(path.join(BASE_DIR, "index.html"));
+  res.json({ message: "Evolve AI Backend is running" });
 });
+
 
 // -------------------------------------------------------------------
 // File-Based Session Memory
