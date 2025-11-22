@@ -14,7 +14,7 @@ import cors from "cors";
 // DB setup
 // -------------------------------------------------------------------
 import mongoose from "mongoose";
-import ChatMessage from "./models/ChatMessage.js";
+import ChatSession from "./models/ChatSession.js";
 
 // -------------------------------------------------------------
 // MongoDB Connection
@@ -98,23 +98,22 @@ function readHistory(sessionId) {
 
 async function saveMessage(sessionId, role, content) {
   try {
-    const msg = new ChatMessage({
-      session_id: sessionId,
-      role,
-      content,
-    });
-    await msg.save();
+    await ChatSession.findOneAndUpdate(
+      { session_id: sessionId },
+      { $push: { messages: { role, content } } },
+      { upsert: true, new: true }
+    );
   } catch (error) {
     console.error("Error saving message:", error);
   }
 }
 
 async function getHistory(sessionId, limit = 20) {
-  return await ChatMessage
-    .find({ session_id: sessionId })
-    .sort({ timestamp: 1 })
-    .limit(limit)
-    .lean();
+  const session = await ChatSession.findOne(
+    { session_id: sessionId },
+    { messages: { $slice: -limit } }
+  ).lean();
+  return session ? session.messages : [];
 }
 
 
@@ -171,11 +170,11 @@ app.post("/api/chat", async (req, res) => {
 // -------------------------------------------------------------------
 app.get("/api/history/:session_id", async (req, res) => {
   const sessionId = req.params.session_id;
-  const history = await ChatMessage.find({ session_id: sessionId }).sort({ timestamp: 1 });
+  const session = await ChatSession.findOne({ session_id: sessionId });
 
   res.json({
     session_id: sessionId,
-    messages: history,
+    messages: session ? session.messages : [],
   });
 });
 
