@@ -60,7 +60,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://evolve-website-frontend.vercel.app",
+      "https://mooncrest-heist-ai.vercel.app/",
       "http://localhost:5173"
     ],
     methods: ["GET", "POST"],
